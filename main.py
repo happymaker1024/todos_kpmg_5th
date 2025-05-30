@@ -62,15 +62,34 @@ async def add(request: Request, task: str = Form(...), db: Session = Depends(get
 @app.get("/edit/{id}")
 async def update(request: Request, id: int, db: Session = Depends(get_db)):
     # Todo 클래스와 연결하고, 조회
-    print("id : ", id)
+    # print("id : ", id)
     todo = db.query(models.Todo).filter(models.Todo.id == id).first()
-    print(todo)
+    # print(todo)
+    # 전체 조회
+    todos = db.query(models.Todo).order_by(models.Todo.id.desc())
+
     # 리턴하기(편집가능한 html에 랜더링해서)
-    return todo
+    return templates.TemplateResponse(
+        "edit.html",
+        {"request": request, "todo" : todo, "todos": todos}
+    )
 
 # todo 수정: 업데이트 데이터를 적용하는 것
-@app.post("/edit")
-async def update(request: Request, task: str = Form(...), db: Session = Depends(get_db)):
-    pass
+@app.post("/edit/{id}")
+async def update(request: Request, id: int, task: str = Form(...), completed: bool = Form(False),  db: Session = Depends(get_db)):
+    todo = db.query(models.Todo).filter(models.Todo.id == id).first()
+    todo.task = task
+    todo.completed = completed
+    db.commit()
+    return RedirectResponse(url=app.url_path_for("home"), status_code=status.HTTP_303_SEE_OTHER)
 
-# todo 삭제
+# todo 삭제하기
+@app.get("/delete/{id}")
+async def delete(request: Request, id: int, db: Session = Depends(get_db)):
+    # 삭제할 id 데이터 조회
+    todo = db.query(models.Todo).filter(models.Todo.id == id).first()
+    # 해당 데이터 삭제
+    db.delete(todo)
+    # 테이블 적용
+    db.commit()
+    return RedirectResponse(url=app.url_path_for("home"), status_code=status.HTTP_303_SEE_OTHER)
