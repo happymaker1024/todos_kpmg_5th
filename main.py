@@ -46,10 +46,31 @@ async def home(request: Request, db: Session = Depends(get_db)):
 
 # 입력한 todo를 DB에 저장하기
 @app.post("/add")
-async def add(request: Request,task: str = Form(...), db: Session = Depends(get_db)):
+async def add(request: Request, task: str = Form(...), db: Session = Depends(get_db)):
     # DB에 저장하기
+    # 클라이언트에서 넘어온 task 데이터를 Todo 객체로 만듬
     todo = models.Todo(task=task)
+    # 클라이언트에서 넘어온 데이터를 테이블에 추가함
     db.add(todo)
+    # 테이블에 적용
     db.commit()
     # todos 조회 수행하는 path(함수)로 제어권을 넘김
+    # "home" : 다른 엔드포인트의 함수 이름
     return RedirectResponse(url=app.url_path_for("home"), status_code=status.HTTP_303_SEE_OTHER)
+# todo 수정: 업데이트를 위한 조회
+# http://127.0.0.1:8000/edit/6
+@app.get("/edit/{id}")
+async def update(request: Request, id: int, db: Session = Depends(get_db)):
+    # Todo 클래스와 연결하고, 조회
+    print("id : ", id)
+    todo = db.query(models.Todo).filter(models.Todo.id == id).first()
+    print(todo)
+    # 리턴하기(편집가능한 html에 랜더링해서)
+    return todo
+
+# todo 수정: 업데이트 데이터를 적용하는 것
+@app.post("/edit")
+async def update(request: Request, task: str = Form(...), db: Session = Depends(get_db)):
+    pass
+
+# todo 삭제
