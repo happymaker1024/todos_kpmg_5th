@@ -1,5 +1,6 @@
-# todos_kpmg_5th
-todo앱, face recognition
+# fastapi app 구현하기 kpmg_5th
+- todo앱
+- face recognition
 - 실습 날짜 : 2025. 05. 30
 
 ## 실습환경
