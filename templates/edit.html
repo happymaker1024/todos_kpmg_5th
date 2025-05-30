@@ -1,6 +1,7 @@
 <!-- base.html 상속지정 -->
 {% extends 'base.html' %}
 {% block content %}
+    <a href="/"><p class="head_img"></p></a>
     <h4>메모 수정하기</h4>
     <br>
     <form action="/edit/{{todo.id}}" method="post">

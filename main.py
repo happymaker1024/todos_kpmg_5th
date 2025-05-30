@@ -1,10 +1,11 @@
 import os
 from fastapi import FastAPI, Form, Request, Depends, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from db.database import SessionLocal, engine, Base
+from face_recog import FaceRecog, video_process
 import models
 app = FastAPI()
 
@@ -93,3 +94,19 @@ async def delete(request: Request, id: int, db: Session = Depends(get_db)):
     # 테이블 적용
     db.commit()
     return RedirectResponse(url=app.url_path_for("home"), status_code=status.HTTP_303_SEE_OTHER)
+
+# 얼굴인식 시스템 관련 코드
+## 비디오 피드 엔드포인트
+# HTML 페이지 렌더링 엔드포인트
+# http://127.0.0.1:8000/face_recog_view
+@app.get("/face_recog_view")
+def get_video_page(request: Request):
+    return templates.TemplateResponse("face_recog.html", {"request": request})
+
+# 영상 스트리밍 처리
+@app.get("/face_recog")
+def face_recog():
+    # FaceRecog 인스턴스 생성
+    face_recog_instance = FaceRecog()    
+    # 스트리밍 응답
+    return StreamingResponse(video_process(face_recog_instance), media_type="multipart/x-mixed-replace; boundary=frame")
